@@ -1,0 +1,203 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  name      String
+  phone     String   @unique
+  password  String
+  role      String   @default("staff") // owner, cashier, technician, staff
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  sales     Sale[]
+  attendance Attendance[]
+}
+
+model Product {
+  id            Int      @id @default(autoincrement())
+  imei          String?  @unique
+  brand         String
+  model         String
+  color         String?
+  storage       String?
+  category      String   @default("phone") // phone, accessory, sim
+  purchasePrice Float
+  sellingPrice  Float
+  stockQty      Int      @default(1)
+  isActive      Boolean  @default(true)
+  supplierId    Int?
+  supplier      Supplier? @relation(fields: [supplierId], references: [id])
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  saleItems     SaleItem[]
+  purchaseItems PurchaseItem[]
+}
+
+model Customer {
+  id                 Int      @id @default(autoincrement())
+  name               String
+  phone              String
+  address            String?
+  outstandingBalance Float    @default(0)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  sales              Sale[]
+  repairJobs         RepairJob[]
+  udharRecords       UdharRecord[]
+}
+
+model Supplier {
+  id                 Int      @id @default(autoincrement())
+  name               String
+  phone              String
+  address            String?
+  outstandingBalance Float    @default(0)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  products           Product[]
+  purchases          Purchase[]
+}
+
+model Sale {
+  id          Int        @id @default(autoincrement())
+  customerId  Int?
+  customer    Customer?  @relation(fields: [customerId], references: [id])
+  userId      Int
+  user        User       @relation(fields: [userId], references: [id])
+  totalAmount Float
+  paidAmount  Float
+  discount    Float      @default(0)
+  paymentMode String     @default("cash") // cash, jazzcash
+  status      String     @default("completed") // completed, refunded
+  notes       String?
+  createdAt   DateTime   @default(now())
+  refundedAt  DateTime?
+  saleItems   SaleItem[]
+  udharRecord UdharRecord?
+}
+
+model SaleItem {
+  id        Int     @id @default(autoincrement())
+  saleId    Int
+  sale      Sale    @relation(fields: [saleId], references: [id])
+  productId Int
+  product   Product @relation(fields: [productId], references: [id])
+  quantity  Int
+  unitPrice Float
+  total     Float
+}
+
+model RepairJob {
+  id            Int      @id @default(autoincrement())
+  jobNumber     String   @unique
+  customerId    Int
+  customer      Customer @relation(fields: [customerId], references: [id])
+  deviceBrand   String
+  deviceModel   String
+  imei          String?
+  problem       String
+  diagnosis     String?
+  estimatedCost Float?
+  finalCost     Float?
+  advancePaid   Float    @default(0)
+  status        String   @default("received") // received, in_progress, ready, delivered, cancelled
+  dueDate       DateTime?
+  deliveredAt   DateTime?
+  notes         String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model UdharRecord {
+  id              Int            @id @default(autoincrement())
+  customerId      Int
+  customer        Customer       @relation(fields: [customerId], references: [id])
+  saleId          Int?           @unique
+  sale            Sale?          @relation(fields: [saleId], references: [id])
+  totalAmount     Float
+  paidAmount      Float          @default(0)
+  remainingAmount Float
+  description     String
+  dueDate         DateTime?
+  status          String         @default("pending") // pending, partial, cleared
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  payments        UdharPayment[]
+}
+
+model UdharPayment {
+  id           Int         @id @default(autoincrement())
+  udharId      Int
+  udhar        UdharRecord @relation(fields: [udharId], references: [id])
+  amountPaid   Float
+  note         String?
+  paidAt       DateTime    @default(now())
+}
+
+model JazzCashTransaction {
+  id         Int      @id @default(autoincrement())
+  type       String   // send, receive
+  amount     Float
+  recipient  String
+  senderFee  Float    @default(0)
+  commission Float    @default(0)
+  notes      String?
+  createdAt  DateTime @default(now())
+}
+
+model EasyLoadSale {
+  id             Int      @id @default(autoincrement())
+  network        String   // jazz, telenor, ufone, zong
+  amount         Float
+  customerNumber String
+  commission     Float    @default(0)
+  createdAt      DateTime @default(now())
+}
+
+model Expense {
+  id        Int      @id @default(autoincrement())
+  category  String   // rent, electricity, salary, misc, other
+  amount    Float
+  note      String?
+  date      DateTime @default(now())
+  createdAt DateTime @default(now())
+}
+
+model Purchase {
+  id          Int      @id @default(autoincrement())
+  supplierId  Int
+  supplier    Supplier @relation(fields: [supplierId], references: [id])
+  totalAmount Float
+  paidAmount  Float    @default(0)
+  notes       String?
+  createdAt   DateTime @default(now())
+  items       PurchaseItem[]
+}
+
+model PurchaseItem {
+  id          Int      @id @default(autoincrement())
+  purchaseId  Int
+  purchase    Purchase @relation(fields: [purchaseId], references: [id])
+  productId   Int?
+  product     Product? @relation(fields: [productId], references: [id])
+  description String
+  quantity    Int
+  unitPrice   Float
+  total       Float
+}
+
+model Attendance {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+  clockIn   DateTime @default(now())
+  clockOut  DateTime?
+  date      DateTime @default(now())
+}

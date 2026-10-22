@@ -1,0 +1,33 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Print only the sale receipt */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+
+  #sale-receipt,
+  #sale-receipt * {
+    visibility: visible;
+  }
+
+  #sale-receipt {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 80mm;
+    padding: 0;
+    background: white;
+    color: black;
+  }
+
+  @page {
+    margin: 6mm;
+  }
+}
