@@ -55,6 +55,12 @@ npm run build                 # output in web/dist
 npm run preview
 ```
 
+## Deploy online
+
+The website can be hosted on **Vercel**, but the Express API needs a host with a
+persistent disk or a managed Postgres database. Step-by-step instructions for
+both setups are in [DEPLOYMENT.md](DEPLOYMENT.md).
+
 ## Default login
 
 | Field    | Value         |
@@ -66,7 +72,7 @@ These are the credentials created by `backend/prisma/seed.js` on a fresh install
 
 ## Mobile app (Expo)
 
-The `mobile/` folder contains a native Android/iPhone app that talks to the same backend. Every phone must be able to reach the shop PC over Wi-Fi.
+The `mobile/` folder contains a native Android/iPhone app that talks to the same backend. Every phone must reach the backend — the shop PC over Wi-Fi during development, or the public HTTPS URL once the API is hosted online (see [DEPLOYMENT.md](DEPLOYMENT.md)).
 
 ### 1. Start the backend and find the PC's IP
 
